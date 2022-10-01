@@ -7,32 +7,58 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 
 public class Client {
 
-	public static void main(String[] args) throws UnknownHostException, IOException {
-		System.out.println("Ready to connect");
+	public static void main(String[] args) {
+
+		for(int i = 0; i < 5; i++) {
+		SimpleClient sc = new SimpleClient(i);
+				sc.start();
+		}		
+	}
+}
+
+class SimpleClient extends Thread {
+	
+	private final String[] COMMAND = {
+			"Hello", "Morning", "Evening"
+	};
+	
+	int command;
+	
+	public SimpleClient(int command) {
+		this.command = command;
+	}
+	
+	@Override
+	public void run() {
+		
+		try {
+//		System.out.println("Started" + LocalDateTime.now());
 
 		Socket client = new Socket("127.0.0.1", 12345);
-		System.out.println("Connect to server established");
-		createConnect(client);
 		
-	}
-
-	private static void createConnect(Socket client) throws IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
 		
-		String str = "Alexey";
+		String str = COMMAND[command % COMMAND.length] + " " + "Alexey";
 		bw.write(str);
 		bw.newLine();
 		bw.flush();
 		
 		System.out.println(br.readLine());
 		
+//		System.out.println("Finished" + LocalDateTime.now());
+
+		
 		br.close();
 		bw.close();
 		client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace(System.out);
+		}
 	}
-
 }
+

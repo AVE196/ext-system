@@ -10,7 +10,7 @@ import java.net.Socket;
 
 public class Server {
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		
 		ServerSocket sc = new ServerSocket(12345);
 		
@@ -18,25 +18,62 @@ public class Server {
 		
 		while(true) {
 			Socket client = sc.accept();
-			connectionSocket(client);
+			
+			SimpleServer ss = new SimpleServer(client);
+			ss.start();
 		}
 		
 	}
+}
 
-	private static void connectionSocket(Socket client) throws IOException {
+class SimpleServer extends Thread {
+	
+	private Socket client;
+	
+	public SimpleServer(Socket client) {
+		this.client = client;
+	}
+	
+	@Override
+	public void run() {
+		connectionSocket();
+	}
+	
+	private void connectionSocket() {
+		
+		try {		
 		BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
 		
-		StringBuilder sb = new StringBuilder("Hello, ");
-		sb.append(br.readLine());
+		String[] str = br.readLine().split("\\s+");
+		String command = str[0];
+		String userName = str[1];
 		
-		bw.write(sb.toString());
+		String response = buildResponse(command, userName);
+		bw.write(response);
+		Thread.sleep(2000);
 		bw.newLine();
 		bw.flush();		
 		
 		br.close();
 		bw.close();
 		client.close();
+		} catch (Exception ex) {
+			ex.printStackTrace(System.out);
+		}
 	}
-
+	
+	private String buildResponse(String command, String userName) {
+		switch (command) {
+		case "Hello" : return "Hello" + " " + userName;
+		case "Morning" : return "Good morning" + " " + userName;
+		case "Evening" : return "Good evening" + " " + userName;
+		default : return "Hi" + " " + userName;
+		}
+	}
+	
 }
+
+	
+
+
